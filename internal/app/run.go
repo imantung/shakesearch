@@ -14,6 +14,7 @@ type (
 		Port         string `default:"3001"`
 		PreviewLimit int    `default:"500"`
 		Source       string `default:"completeworks.txt"`
+		Static       string `default:"./static"`
 	}
 )
 
@@ -33,7 +34,7 @@ func Run() error {
 
 	e := echo.New()
 	e.HideBanner = true
-	e.Static("/", "./static")
+	e.Static("/", cfg.Static)
 	e.GET("/search", func(ec echo.Context) error {
 		q := ec.QueryParam("q")
 		results := searcher.Search(q)

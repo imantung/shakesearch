@@ -11,10 +11,15 @@ const Controller = {
   },
 
   updateTable: (results) => {
+    // console.log("-------");
+    // console.log(results);
     const table = document.getElementById("table-body");
     const rows = [];
     for (let result of results) {
-      rows.push(`<tr>${result}<tr/>`);
+      rows.push(`<tr>
+        chapter: ${result.chapter}; line-number: ${result.line_number}<br>
+        ${result.preview}
+      <tr/>`);
     }
     table.innerHTML = rows;
   },

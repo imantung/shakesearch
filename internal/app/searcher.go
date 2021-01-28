@@ -7,7 +7,13 @@ import (
 type (
 	// Searcher is interface for search
 	Searcher interface {
-		Search(query string) []string
+		Search(query string) []Result
+	}
+	// Result of search
+	Result struct {
+		Preview    string `json:"preview"`
+		Chapter    string `json:"chapter"`
+		LineNumber int    `json:"line_number"`
 	}
 	// SuffixArraySearcher substring search in logarithmic time using an in-memory suffix array
 	SuffixArraySearcher struct {
@@ -32,10 +38,15 @@ func NewSuffixArraySearcher(data []byte, previewLimit int) Searcher {
 	}
 }
 
+// CreateSuffixArraySearcherByFile ...
+func CreateSuffixArraySearcherByFile(source string, previewLimit int) (Searcher, error) {
+	return nil, nil
+}
+
 // Search ...
-func (s *SuffixArraySearcher) Search(q string) []string {
+func (s *SuffixArraySearcher) Search(q string) []Result {
 	idxs := s.SuffixArray.Lookup([]byte(q), -1)
-	results := []string{}
+	var results []Result
 	for _, idx := range idxs {
 		results = append(results, s.Retrieve(idx))
 	}
@@ -43,7 +54,7 @@ func (s *SuffixArraySearcher) Search(q string) []string {
 }
 
 // Retrieve search result in specific idx
-func (s *SuffixArraySearcher) Retrieve(idx int) string {
+func (s *SuffixArraySearcher) Retrieve(idx int) Result {
 	begin := idx - s.PreviewLimit/2
 	if begin < 0 {
 		begin = 0
@@ -53,5 +64,9 @@ func (s *SuffixArraySearcher) Retrieve(idx int) string {
 	if end > length {
 		end = length
 	}
-	return s.FullText[begin:end]
+	return Result{
+		Preview:    s.FullText[begin:end],
+		LineNumber: -1,
+		Chapter:    "unknown",
+	}
 }
