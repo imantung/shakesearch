@@ -38,11 +38,6 @@ func NewSuffixArraySearcher(data []byte, previewLimit int) Searcher {
 	}
 }
 
-// CreateSuffixArraySearcherByFile ...
-func CreateSuffixArraySearcherByFile(source string, previewLimit int) (Searcher, error) {
-	return nil, nil
-}
-
 // Search ...
 func (s *SuffixArraySearcher) Search(q string) []Result {
 	idxs := s.SuffixArray.Lookup([]byte(q), -1)
