@@ -6,36 +6,38 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"strings"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
-const (
-	defaultPort         = "3001"
-	defaultPreviewLimit = 500
-	defaultSource       = "completeworks.txt"
+type (
+	// Config ...
+	Config struct {
+		Port         string `default:"3001"`
+		PreviewLimit int    `default:"500"`
+		Source       string `default:"completeworks.txt"`
+	}
 )
 
 // Run application
 func Run() error {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	var cfg Config
+	if err := envconfig.Process("", &cfg); err != nil {
+		return err
 	}
 
-	data, err := ioutil.ReadFile(defaultSource)
+	data, err := ioutil.ReadFile(cfg.Source)
 	if err != nil {
-		return fmt.Errorf("Missing source: %w", err)
+		return err
 	}
-	strings.Contains("", "")
 
-	searcher := NewSuffixArraySearcher(data, defaultPreviewLimit)
+	searcher := NewSuffixArraySearcher(data, cfg.PreviewLimit)
 
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/search", handleSearch(searcher))
 
-	fmt.Printf("Listening on port %s...", port)
-	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	fmt.Printf("Listening on port %s...", cfg.Port)
+	return http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), nil)
 }
 
 func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
