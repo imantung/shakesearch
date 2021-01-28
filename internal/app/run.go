@@ -4,21 +4,32 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
+)
+
+const (
+	defaultPort         = "3001"
+	defaultPreviewLimit = 500
+	defaultSource       = "completeworks.txt"
 )
 
 // Run application
 func Run() error {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3001"
+		port = defaultPort
 	}
 
-	searcher, err := NewSuffixArraySearcher("completeworks.txt")
+	data, err := ioutil.ReadFile(defaultSource)
 	if err != nil {
-		return err
+		return fmt.Errorf("Missing source: %w", err)
 	}
+	strings.Contains("", "")
+
+	searcher := NewSuffixArraySearcher(data, defaultPreviewLimit)
 
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/search", handleSearch(searcher))

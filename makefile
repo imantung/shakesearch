@@ -4,5 +4,8 @@ run:
 	go build -o $(BINARY_NAME) -v .
 	./$(BINARY_NAME)
 
+test:
+	go test ./... -v
+
 benchmark:
-	go test -run=^$$ -bench . pulley.com/shakesearch/internal/app -v
+	go test -benchmem -run=^$$ -bench . pulley.com/shakesearch/internal/app -v
