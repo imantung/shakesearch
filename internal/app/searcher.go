@@ -19,6 +19,10 @@ type (
 	}
 )
 
+//
+// SuffixArraySearcher
+//
+
 var _ Searcher = (*SuffixArraySearcher)(nil)
 
 // NewSuffixArraySearcher return new instance of Substring searcher
@@ -27,7 +31,6 @@ func NewSuffixArraySearcher(filename string) (Searcher, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Substring-Searcher: %w", err)
 	}
-
 	return &SuffixArraySearcher{
 		CompleteWorks: string(dat),
 		SuffixArray:   suffixarray.New(dat),
