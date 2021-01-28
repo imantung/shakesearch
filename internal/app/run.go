@@ -1,13 +1,11 @@
 package app
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/labstack/echo/v4"
 )
 
 type (
@@ -33,31 +31,13 @@ func Run() error {
 
 	searcher := NewSuffixArraySearcher(data, cfg.PreviewLimit)
 
-	http.Handle("/", http.FileServer(http.Dir("./static")))
-	http.HandleFunc("/search", handleSearch(searcher))
-
-	fmt.Printf("Listening on port %s...", cfg.Port)
-	return http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), nil)
-}
-
-func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		query, ok := r.URL.Query()["q"]
-		if !ok || len(query[0]) < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("missing search query in URL params"))
-			return
-		}
-		results := searcher.Search(query[0])
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("encoding failure"))
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(buf.Bytes())
-	}
+	e := echo.New()
+	e.HideBanner = true
+	e.Static("/", "./static")
+	e.GET("/search", func(ec echo.Context) error {
+		q := ec.QueryParam("q")
+		results := searcher.Search(q)
+		return ec.JSON(http.StatusOK, results)
+	})
+	return e.Start(":" + cfg.Port)
 }

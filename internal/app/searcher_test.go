@@ -7,7 +7,7 @@ import (
 	"pulley.com/shakesearch/internal/app"
 )
 
-func TestSuffixArraySearcher_Retrieve(t *testing.T) {
+func TestSearch(t *testing.T) {
 	testcases := []struct {
 		Name     string
 		Searcher app.Searcher
