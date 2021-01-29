@@ -7,7 +7,7 @@ import (
 type (
 	// Searcher is interface for search
 	Searcher interface {
-		Search(query string) []Result
+		Search(query string) []*Result
 	}
 	// Result of search
 	Result struct {
@@ -37,9 +37,9 @@ func NewSuffixArraySearcher(book *Book) Searcher {
 }
 
 // Search ...
-func (s *SuffixArraySearcher) Search(q string) []Result {
+func (s *SuffixArraySearcher) Search(q string) []*Result {
 	idxs := s.SuffixArray.Lookup([]byte(q), -1)
-	var results []Result
+	var results []*Result
 	for _, idx := range idxs {
 		results = append(results, s.Book.Retrieve(idx))
 	}

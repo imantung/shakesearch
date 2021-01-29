@@ -12,15 +12,10 @@ type (
 	Book struct {
 		Source       string
 		Text         string
-		Eols         []int // End of line indexes
-		Chapters     []Chapter
+		LineIdxs     []int // Beginning of line indexes
+		Chapters     []string
 		ChapterIdxs  []int
 		PreviewLimit int
-	}
-	// Chapter information
-	Chapter struct {
-		Name string
-		Idx  int
 	}
 )
 
@@ -35,21 +30,21 @@ func CreateBook(source string, chapterTitles []string, previewLimit int) (*Book,
 
 	var (
 		buf         bytes.Buffer
-		eols        []int
+		lineIdxs    []int
 		curr        int
 		chapterIdxs []int
-		chapters    []Chapter
+		chapters    []string
 	)
 	chapterMap := stringMap(chapterTitles)
 	for scanner.Scan() {
 		text := scanner.Text()
 		fmt.Fprintln(&buf, text)
-		curr += len(text)
-		eols = append(eols, curr)
+		lineIdxs = append(lineIdxs, curr)
 		if _, ok := chapterMap[text]; ok {
-			chapters = append(chapters, Chapter{Name: text, Idx: curr})
+			chapters = append(chapters, text)
 			chapterIdxs = append(chapterIdxs, curr)
 		}
+		curr += len(text) + 1
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
@@ -57,7 +52,7 @@ func CreateBook(source string, chapterTitles []string, previewLimit int) (*Book,
 	return &Book{
 		Source:       source,
 		Text:         buf.String(),
-		Eols:         eols,
+		LineIdxs:     lineIdxs,
 		Chapters:     chapters,
 		ChapterIdxs:  chapterIdxs,
 		PreviewLimit: previewLimit,
@@ -73,7 +68,15 @@ func stringMap(slice []string) map[string]struct{} {
 }
 
 // Retrieve search result in specific idx
-func (b *Book) Retrieve(idx int) Result {
+func (b *Book) Retrieve(idx int) *Result {
+	return &Result{
+		Preview:    b.preview(idx),
+		LineNumber: b.lineNumber(idx),
+		Chapter:    b.chapter(idx),
+	}
+}
+
+func (b *Book) preview(idx int) string {
 	begin := idx - b.PreviewLimit/2
 	if begin < 0 {
 		begin = 0
@@ -83,9 +86,23 @@ func (b *Book) Retrieve(idx int) Result {
 	if end > length {
 		end = length
 	}
-	return Result{
-		Preview:    b.Text[begin:end],
-		LineNumber: -1,
-		Chapter:    "unknown",
+	return b.Text[begin:end]
+}
+
+func (b *Book) lineNumber(idx int) int {
+	for i := len(b.LineIdxs) - 1; i >= 0; i-- {
+		if idx >= b.LineIdxs[i] {
+			return i + 1
+		}
 	}
+	return -1
+}
+
+func (b *Book) chapter(idx int) string {
+	for i := len(b.ChapterIdxs) - 1; i >= 0; i-- {
+		if idx > b.ChapterIdxs[i] {
+			return b.Chapters[i]
+		}
+	}
+	return "unknown"
 }
