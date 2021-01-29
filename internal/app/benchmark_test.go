@@ -1,7 +1,6 @@
 package app_test
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,10 +8,10 @@ import (
 )
 
 func BenchmarkSuffixArraySearcher(b *testing.B) {
-	data, err := ioutil.ReadFile("../../completeworks.txt")
+	book, err := app.CreateBook("../../data/completeworks.txt", []string{}, 120)
 	require.NoError(b, err)
 
-	searcher := app.NewSuffixArraySearcher(data, 500)
+	searcher := app.NewSuffixArraySearcher(book)
 	for i := 0; i < b.N; i++ {
 		searcher.Search("Hamlet")
 	}

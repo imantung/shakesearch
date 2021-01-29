@@ -11,11 +11,12 @@ import (
 
 func TestCreateBook(t *testing.T) {
 	testcases := []struct {
-		Name        string
-		Text        string
-		Chapters    []string
-		Expected    *app.Book
-		ExpectedErr string
+		Name         string
+		Text         string
+		Chapters     []string
+		PreviewLimit int
+		Expected     *app.Book
+		ExpectedErr  string
 	}{
 		{
 			Text: "12345\n123456789\n1234",
@@ -26,8 +27,9 @@ func TestCreateBook(t *testing.T) {
 			},
 		},
 		{
-			Text:     "title1\n12345\n123456789\n1234\ntitle2\n3456023834\n0122349\ntitle3\n12434\n94523",
-			Chapters: []string{"title1", "title2", "title3"},
+			Text:         "title1\n12345\n123456789\n1234\ntitle2\n3456023834\n0122349\ntitle3\n12434\n94523",
+			Chapters:     []string{"title1", "title2", "title3"},
+			PreviewLimit: 120,
 			Expected: &app.Book{
 				Source: "filename",
 				Text:   "title1\n12345\n123456789\n1234\ntitle2\n3456023834\n0122349\ntitle3\n12434\n94523\n",
@@ -37,7 +39,9 @@ func TestCreateBook(t *testing.T) {
 					{Name: "title2", Idx: 30},
 					{Name: "title3", Idx: 53},
 				},
-				ChapterIdxs: []int{6, 30, 53}},
+				ChapterIdxs:  []int{6, 30, 53},
+				PreviewLimit: 120,
+			},
 		},
 	}
 	for _, tt := range testcases {
@@ -45,7 +49,7 @@ func TestCreateBook(t *testing.T) {
 			require.NoError(t, ioutil.WriteFile("filename", []byte(tt.Text), 0777))
 			defer os.Remove("filename")
 
-			book, err := app.CreateBook("filename", tt.Chapters)
+			book, err := app.CreateBook("filename", tt.Chapters, tt.PreviewLimit)
 			if tt.ExpectedErr != "" {
 				require.EqualError(t, err, tt.ExpectedErr)
 			} else {

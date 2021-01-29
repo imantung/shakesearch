@@ -10,11 +10,12 @@ import (
 type (
 	// Book is pragmatic data for the complete-book
 	Book struct {
-		Source      string
-		Text        string
-		Eols        []int // End of line indexes
-		Chapters    []Chapter
-		ChapterIdxs []int
+		Source       string
+		Text         string
+		Eols         []int // End of line indexes
+		Chapters     []Chapter
+		ChapterIdxs  []int
+		PreviewLimit int
 	}
 	// Chapter information
 	Chapter struct {
@@ -24,7 +25,7 @@ type (
 )
 
 // CreateBook create pragramatic data
-func CreateBook(source string, chapterTitles []string) (*Book, error) {
+func CreateBook(source string, chapterTitles []string, previewLimit int) (*Book, error) {
 	file, err := os.Open(source)
 	if err != nil {
 		return nil, err
@@ -54,11 +55,12 @@ func CreateBook(source string, chapterTitles []string) (*Book, error) {
 		return nil, err
 	}
 	return &Book{
-		Source:      source,
-		Text:        buf.String(),
-		Eols:        eols,
-		Chapters:    chapters,
-		ChapterIdxs: chapterIdxs,
+		Source:       source,
+		Text:         buf.String(),
+		Eols:         eols,
+		Chapters:     chapters,
+		ChapterIdxs:  chapterIdxs,
+		PreviewLimit: previewLimit,
 	}, nil
 }
 
@@ -68,4 +70,22 @@ func stringMap(slice []string) map[string]struct{} {
 		m[s] = struct{}{}
 	}
 	return m
+}
+
+// Retrieve search result in specific idx
+func (b *Book) Retrieve(idx int) Result {
+	begin := idx - b.PreviewLimit/2
+	if begin < 0 {
+		begin = 0
+	}
+	end := begin + b.PreviewLimit
+	length := len(b.Text)
+	if end > length {
+		end = length
+	}
+	return Result{
+		Preview:    b.Text[begin:end],
+		LineNumber: -1,
+		Chapter:    "unknown",
+	}
 }

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"io/ioutil"
+	"errors"
 	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
@@ -13,7 +13,7 @@ type (
 	Config struct {
 		Port         string `default:"3001"`
 		PreviewLimit int    `default:"500"`
-		Source       string `default:"completeworks.txt"`
+		Source       string `default:"data/completeworks.txt"`
 		Static       string `default:"./static"`
 	}
 )
@@ -25,12 +25,12 @@ func Run() error {
 		return err
 	}
 
-	data, err := ioutil.ReadFile(cfg.Source)
+	book, err := CreateBook(cfg.Source, []string{}, cfg.PreviewLimit)
 	if err != nil {
-		return err
+		return errors.New("Book: " + err.Error())
 	}
 
-	searcher := NewSuffixArraySearcher(data, cfg.PreviewLimit)
+	searcher := NewSuffixArraySearcher(book)
 
 	e := echo.New()
 	e.HideBanner = true
