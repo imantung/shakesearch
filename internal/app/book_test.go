@@ -24,7 +24,7 @@ func TestCreateBook(t *testing.T) {
 			Expected: &app.Book{
 				Source:   "filename",
 				Text:     "12345\n123456789\n1234\n",
-				LineIdxs: []int{0, 6, 16, 21},
+				LineIdxs: []int{0, 6, 16},
 			},
 		},
 		{
@@ -35,9 +35,9 @@ func TestCreateBook(t *testing.T) {
 			Expected: &app.Book{
 				Source:       "filename",
 				Text:         "title1\nabcdefghij\nklmnopqrstuv\nwxyz\ntitle2\n12345\n67890\ntitle3\nabcdef\nghijklm\n",
-				LineIdxs:     []int{0, 7, 13, 23, 28, 35, 46, 54, 61, 67, 73},
+				LineIdxs:     []int{0, 7, 18, 31, 36, 43, 49, 55, 62, 69},
 				Chapters:     []string{"title1", "title2", "title3"},
-				ChapterIdxs:  []int{0, 28, 54},
+				ChapterIdxs:  []int{0, 36, 55},
 				PreviewLimit: 120,
 			},
 		},

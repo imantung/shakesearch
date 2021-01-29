@@ -5,7 +5,7 @@ run:
 	./$(BINARY_NAME)
 
 test:
-	go test ./... -v
+	go test ./... -cover -v
 
 benchmark:
 	go test -benchmem -run=^$$ -bench . pulley.com/shakesearch/internal/app -v

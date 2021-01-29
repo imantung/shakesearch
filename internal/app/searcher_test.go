@@ -13,7 +13,7 @@ func TestSearch(t *testing.T) {
 		Book       *app.Book
 		SearcherFn func(*app.Book) app.Searcher
 		Query      string
-		Expected   []app.Result
+		Expected   []*app.Result
 	}{
 		{
 			Name: "preview length more than data",
@@ -23,7 +23,7 @@ func TestSearch(t *testing.T) {
 			},
 			SearcherFn: app.NewSuffixArraySearcher,
 			Query:      "defgh",
-			Expected: []app.Result{
+			Expected: []*app.Result{
 				{Preview: "abcdefghijklmn", Chapter: "unknown", LineNumber: -1},
 			},
 		},
@@ -35,7 +35,7 @@ func TestSearch(t *testing.T) {
 			},
 			SearcherFn: app.NewSuffixArraySearcher,
 			Query:      "abc",
-			Expected: []app.Result{
+			Expected: []*app.Result{
 				{Preview: "abcdefghijklmn", Chapter: "unknown", LineNumber: -1},
 			},
 		},
@@ -47,7 +47,7 @@ func TestSearch(t *testing.T) {
 			},
 			SearcherFn: app.NewSuffixArraySearcher,
 			Query:      "klmn",
-			Expected: []app.Result{
+			Expected: []*app.Result{
 				{Preview: "abcdefghijklmn", Chapter: "unknown", LineNumber: -1},
 			},
 		},
@@ -59,7 +59,7 @@ func TestSearch(t *testing.T) {
 			},
 			SearcherFn: app.NewSuffixArraySearcher,
 			Query:      "de",
-			Expected: []app.Result{
+			Expected: []*app.Result{
 				{Preview: "m def", Chapter: "unknown", LineNumber: -1},
 				{Preview: "n def", Chapter: "unknown", LineNumber: -1},
 				{Preview: "bcdef", Chapter: "unknown", LineNumber: -1},
