@@ -11,17 +11,19 @@ const Controller = {
   },
 
   updateTable: (results) => {
-    // console.log("-------");
-    // console.log(results);
+    console.log("-------");
+    console.log(results);
     const table = document.getElementById("table-body");
-    const rows = [];
     for (let result of results) {
-      rows.push(`<tr>
-        chapter: ${result.chapter}; line-number: ${result.line_number}<br>
-        ${result.preview}
-      <tr/>`);
+      var row = table.insertRow(0);
+      var cell1 = row.insertCell(0);
+
+      // preview = result.preview.replace(/(?:\r\n|\r|\n)/g, "<br>");
+      cell1.innerHTML = `<div style="border: thin solid gray; padding: 0.5em 0.8em;">
+        Chapter ${result.chapter}; Line #${result.line_number}<br>
+        <q>${preview}</q>
+      </div>`;
     }
-    table.innerHTML = rows;
   },
 };
 
