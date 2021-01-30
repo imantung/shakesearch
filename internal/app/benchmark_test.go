@@ -8,10 +8,12 @@ import (
 )
 
 func BenchmarkSuffixArraySearcher(b *testing.B) {
-	book, err := app.CreateBook("../../data/completeworks.txt", []string{}, 120)
+	searcher, err := app.CreateSearcher(app.Config{
+		PreviewLimit: 500,
+		TextSource:   "../../data/completeworks.txt",
+		MetaSource:   "../../data/completeworks-meta.json",
+	})
 	require.NoError(b, err)
-
-	searcher := app.NewSuffixArraySearcher(book)
 	for i := 0; i < b.N; i++ {
 		searcher.Search("Hamlet")
 	}

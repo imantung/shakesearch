@@ -1,8 +1,7 @@
 package app_test
 
 import (
-	"io/ioutil"
-	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,7 +12,7 @@ func TestCreateBook(t *testing.T) {
 	testcases := []struct {
 		Name         string
 		Text         string
-		Chapters     []string
+		Meta         *app.Meta
 		PreviewLimit int
 		Expected     *app.Book
 		ExpectedErr  string
@@ -21,19 +20,20 @@ func TestCreateBook(t *testing.T) {
 		{
 			Name: "no chapters",
 			Text: "12345\n123456789\n1234",
+			Meta: &app.Meta{},
 			Expected: &app.Book{
-				Source:   "filename",
 				Text:     "12345\n123456789\n1234\n",
 				LineIdxs: []int{0, 6, 16},
 			},
 		},
 		{
-			Name:         "with chapters",
-			Text:         "title1\nabcdefghij\nklmnopqrstuv\nwxyz\ntitle2\n12345\n67890\ntitle3\nabcdef\nghijklm\n",
-			Chapters:     []string{"title1", "title2", "title3"},
+			Name: "with chapters",
+			Text: "title1\nabcdefghij\nklmnopqrstuv\nwxyz\ntitle2\n12345\n67890\ntitle3\nabcdef\nghijklm\n",
+			Meta: &app.Meta{
+				Chapters: []string{"title1", "title2", "title3"},
+			},
 			PreviewLimit: 120,
 			Expected: &app.Book{
-				Source:       "filename",
 				Text:         "title1\nabcdefghij\nklmnopqrstuv\nwxyz\ntitle2\n12345\n67890\ntitle3\nabcdef\nghijklm\n",
 				LineIdxs:     []int{0, 7, 18, 31, 36, 43, 49, 55, 62, 69},
 				Chapters:     []string{"title1", "title2", "title3"},
@@ -44,23 +44,13 @@ func TestCreateBook(t *testing.T) {
 	}
 	for _, tt := range testcases {
 		t.Run(tt.Name, func(t *testing.T) {
-			require.NoError(t, ioutil.WriteFile("filename", []byte(tt.Text), 0777))
-			defer os.Remove("filename")
-
-			book, err := app.CreateBook("filename", tt.Chapters, tt.PreviewLimit)
-			if tt.ExpectedErr != "" {
-				require.EqualError(t, err, tt.ExpectedErr)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.Expected, book)
-			}
+			require.Equal(t, tt.Expected, app.NewBook(strings.NewReader(tt.Text), tt.Meta, tt.PreviewLimit))
 		})
 	}
 }
 
 func TestBook_Retrieve(t *testing.T) {
 	book := &app.Book{
-		Source:       "filename",
 		Text:         "title1\nabcdefghij\nklmnopqrstuv\nwxyz\ntitle2\n12345\n67890\ntitle3\nabcdef\nghijklm\n",
 		LineIdxs:     []int{0, 7, 18, 31, 36, 43, 49, 55, 62, 69, 77},
 		Chapters:     []string{"title1", "title2", "title3"},

@@ -1,8 +1,10 @@
 package app
 
 import (
-	"errors"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
@@ -13,7 +15,8 @@ type (
 	Config struct {
 		Port         string `default:"3001"`
 		PreviewLimit int    `default:"500"`
-		Source       string `default:"data/completeworks.txt"`
+		TextSource   string `default:"data/completeworks.txt"`
+		MetaSource   string `default:"data/completeworks-meta.json"`
 		Static       string `default:"./static"`
 	}
 )
@@ -25,57 +28,10 @@ func Run() error {
 		return err
 	}
 
-	book, err := CreateBook(cfg.Source, []string{
-		"THE SONNETS",
-		"ALL’S WELL THAT ENDS WELL",
-		"THE TRAGEDY OF ANTONY AND CLEOPATRA",
-		"AS YOU LIKE IT",
-		"THE COMEDY OF ERRORS",
-		"THE TRAGEDY OF CORIOLANUS",
-		"CYMBELINE",
-		"THE TRAGEDY OF HAMLET, PRINCE OF DENMARK",
-		"THE FIRST PART OF KING HENRY THE FOURTH",
-		"THE SECOND PART OF KING HENRY THE FOURTH",
-		"THE LIFE OF KING HENRY THE FIFTH",
-		"THE FIRST PART OF HENRY THE SIXTH",
-		"THE SECOND PART OF KING HENRY THE SIXTH",
-		"THE THIRD PART OF KING HENRY THE SIXTH",
-		"KING HENRY THE EIGHTH",
-		"KING JOHN",
-		"THE TRAGEDY OF JULIUS CAESAR",
-		"THE TRAGEDY OF KING LEAR",
-		"LOVE’S LABOUR’S LOST",
-		"THE TRAGEDY OF MACBETH",
-		"MEASURE FOR MEASURE",
-		"THE MERCHANT OF VENICE",
-		"THE MERRY WIVES OF WINDSOR",
-		"A MIDSUMMER NIGHT’S DREAM",
-		"MUCH ADO ABOUT NOTHING",
-		"THE TRAGEDY OF OTHELLO, MOOR OF VENICE",
-		"PERICLES, PRINCE OF TYRE",
-		"KING RICHARD THE SECOND",
-		"KING RICHARD THE THIRD",
-		"THE TRAGEDY OF ROMEO AND JULIET",
-		"THE TAMING OF THE SHREW",
-		"THE TEMPEST",
-		"THE LIFE OF TIMON OF ATHENS",
-		"THE TRAGEDY OF TITUS ANDRONICUS",
-		"THE HISTORY OF TROILUS AND CRESSIDA",
-		"TWELFTH NIGHT; OR, WHAT YOU WILL",
-		"THE TWO GENTLEMEN OF VERONA",
-		"THE TWO NOBLE KINSMEN",
-		"THE WINTER’S TALE",
-		"A LOVER’S COMPLAINT",
-		"THE PASSIONATE PILGRIM",
-		"THE PHOENIX AND THE TURTLE",
-		"THE RAPE OF LUCRECE",
-		"VENUS AND ADONIS",
-	}, cfg.PreviewLimit)
+	searcher, err := CreateSearcher(cfg)
 	if err != nil {
-		return errors.New("Book: " + err.Error())
+		return err
 	}
-
-	searcher := NewSuffixArraySearcher(book)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -86,4 +42,33 @@ func Run() error {
 		return ec.JSON(http.StatusOK, results)
 	})
 	return e.Start(":" + cfg.Port)
+}
+
+// CreateSearcher ...
+func CreateSearcher(cfg Config) (Searcher, error) {
+	meta, err := readMeta(cfg.MetaSource)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Open(cfg.TextSource)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	book := NewBook(file, meta, cfg.PreviewLimit)
+	return NewSuffixArraySearcher(book), nil
+}
+
+func readMeta(source string) (*Meta, error) {
+	bytesMeta, err := ioutil.ReadFile(source)
+	if err != nil {
+		return nil, err
+	}
+	var meta Meta
+	if err := json.Unmarshal(bytesMeta, &meta); err != nil {
+		return nil, err
+	}
+	return &meta, err
 }

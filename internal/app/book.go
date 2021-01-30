@@ -4,30 +4,26 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"os"
+	"io"
 )
 
 type (
 	// Book is pragmatic data for the complete-book
 	Book struct {
-		Source       string
 		Text         string
 		LineIdxs     []int // Beginning of line indexes
 		Chapters     []string
 		ChapterIdxs  []int
 		PreviewLimit int
 	}
+	// Meta data
+	Meta struct {
+		Chapters []string `json:"chapters"`
+	}
 )
 
-// CreateBook create pragramatic data
-func CreateBook(source string, chapterTitles []string, previewLimit int) (*Book, error) {
-	file, err := os.Open(source)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-
+// NewBook create pragramatic data
+func NewBook(r io.Reader, meta *Meta, previewLimit int) *Book {
 	var (
 		buf         bytes.Buffer
 		lineIdxs    []int
@@ -35,7 +31,8 @@ func CreateBook(source string, chapterTitles []string, previewLimit int) (*Book,
 		chapterIdxs []int
 		chapters    []string
 	)
-	chapterMap := stringMap(chapterTitles)
+	chapterMap := chapterMap(meta)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		text := scanner.Text()
 		fmt.Fprintln(&buf, text)
@@ -46,22 +43,19 @@ func CreateBook(source string, chapterTitles []string, previewLimit int) (*Book,
 		}
 		curr += len(text) + 1
 	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
+
 	return &Book{
-		Source:       source,
 		Text:         buf.String(),
 		LineIdxs:     lineIdxs,
 		Chapters:     chapters,
 		ChapterIdxs:  chapterIdxs,
 		PreviewLimit: previewLimit,
-	}, nil
+	}
 }
 
-func stringMap(slice []string) map[string]struct{} {
+func chapterMap(meta *Meta) map[string]struct{} {
 	m := make(map[string]struct{})
-	for _, s := range slice {
+	for _, s := range meta.Chapters {
 		m[s] = struct{}{}
 	}
 	return m
