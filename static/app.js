@@ -21,7 +21,7 @@ const Controller = {
       // preview = result.preview.replace(/(?:\r\n|\r|\n)/g, "<br>");
       cell1.innerHTML = `<div style="border: thin solid gray; padding: 0.5em 0.8em;">
         Chapter ${result.chapter}; Line #${result.line_number}<br>
-        <q>${preview}</q>
+        <q>${result.preview}</q>
       </div>`;
     }
   },
